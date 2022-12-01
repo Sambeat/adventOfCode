@@ -1,8 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-Console.WriteLine("Hello, World!");
+using AdventOfCode;
 
-var caloriesLines = File.ReadAllLines("calories.txt");
+Console.WriteLine("Hello, World!");
+InputParser inputParser = new();
+
+var caloriesLines = await inputParser.ReadLinesAsync(2022, 1);
 
 var caloriesTotals = new List<int>();
 
