@@ -1,11 +1,12 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using AdventOfCode;
+using AdventOfCode.Puzzles;
 
 Console.WriteLine("Hello, World!");
-InputParser inputParser = new();
 
-var caloriesLines = await inputParser.ReadLinesAsync(2022, 1);
+var day1 = await Calendar.FetchPuzzleAsync(2022, 1);
+
+var caloriesLines = day1.InputLines;
 
 var caloriesTotals = new List<int>();
 
