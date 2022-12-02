@@ -10,5 +10,5 @@ public class Puzzle
     }
     
     public string RawInput => Input;
-    public string[] InputLines => Input.Split(Environment.NewLine);
+    public string[] InputLines => Input.Split('\n');
 }
