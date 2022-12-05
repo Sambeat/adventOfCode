@@ -5,9 +5,9 @@ using AdventOfCode.Puzzles;
 Console.WriteLine("Hello, World!");
 
 
-var day3 = await Calendar.OpenPuzzleAsync(2022, 5);
+var today = await Calendar.OpenPuzzleAsync(2022, 5);
 
-var lines = day3.InputLines.ToList();
+var lines = today.InputLines.ToList();
 
 // lines.ForEach(Console.WriteLine);
 

@@ -4,9 +4,9 @@ using AdventOfCode.Puzzles;
 
 Console.WriteLine("Hello, World!");
 
-var day1 = await Calendar.OpenPuzzleAsync(2022, 1);
+var today = await Calendar.OpenPuzzleAsync(2022, 1);
 
-var caloriesLines = day1.InputLines;
+var caloriesLines = today.InputLines;
 
 var caloriesTotals = new List<int>();
 

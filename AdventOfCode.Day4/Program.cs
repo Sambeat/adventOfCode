@@ -2,9 +2,9 @@
 
 using AdventOfCode.Puzzles;
 
-var day3 = await Calendar.OpenPuzzleAsync(2022, 4);
+var today = await Calendar.OpenPuzzleAsync(2022, 4);
 
-var lines = day3.InputLines.Where(s => s != string.Empty).ToList();
+var lines = today.InputLines.Where(s => s != string.Empty).ToList();
 
 // lines.ForEach(Console.WriteLine);
 

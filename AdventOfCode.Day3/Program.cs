@@ -4,9 +4,9 @@ using AdventOfCode.Puzzles;
 
 Console.WriteLine("Hello, World!");
 
-var day3 = await Calendar.OpenPuzzleAsync(2022, 3);
+var today = await Calendar.OpenPuzzleAsync(2022, 3);
 
-var lines = day3.InputLines.Where(s => s != string.Empty).ToList();
+var lines = today.InputLines.Where(s => s != string.Empty).ToList();
 
 var sum = 0;
 foreach (var line in lines)
