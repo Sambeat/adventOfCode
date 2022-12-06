@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using AdventOfCode.Puzzles;
+using MoreLinq.Extensions;
 
 Console.WriteLine("Hello, World!");
 
@@ -27,3 +28,17 @@ while (start <= lines.Length - 14)
 }
 
 Console.WriteLine(start + 14);
+
+
+//Bonus one liner for fun since the guy must be smoking something to put this as the day 6 puzzle 
+var quick = lines.IndexOf(
+    new string(
+        lines.Window(14).First(
+            s => 
+                s
+                .Distinct()
+                .Count() == 14)
+            .ToArray()
+        ),
+    StringComparison.Ordinal) + 14;
+Console.WriteLine(quick);
