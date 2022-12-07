@@ -5,7 +5,16 @@ using MoreLinq;
 
 var leaderboard = await Calendar.GetMercantileLeaderboard(2022);
 
-Console.WriteLine(leaderboard);
+Console.WriteLine("--------------------------------------------------------------------------------");
+
+Console.WriteLine($"{$"Member",-30}{"Stars",-25}{"Score",-25}");
+var sortedMembersByLocalScore = leaderboard.Members.OrderByDescending(m => m.Value.LocalScore ).ToList();
+sortedMembersByLocalScore.ForEach(m =>
+{
+    Console.WriteLine($"{$"{m.Value.Name}:",-30}{$"{m.Value.Stars}",-25}{$"{m.Value.LocalScore}",-25}");
+});
+
+Console.WriteLine("--------------------------------------------------------------------------------");
 
 
 for (var i = DateTimeOffset.Now.Day; i > 0; i--)
@@ -26,17 +35,15 @@ for (var i = DateTimeOffset.Now.Day; i > 0; i--)
         }
     });
 
-    var longestName = stars.Keys.Max(k => k.Length);
     var sortedMembers = stars.OrderBy(s => s.Value.Item2 ).ToList();
     Console.WriteLine($"{$"Day {i}",-30}{"Part 1",-25}{"Part 2",-25}");
     sortedMembers.ForEach(m =>
     {
         Console.WriteLine($"{$"{m.Key}:",-30}{$"{m.Value.Item1}",-25}{$"{m.Value.Item2}",-25}");
     });
+    
+    Console.WriteLine("--------------------------------------------------------------------------------");
 }
-
-Console.WriteLine("");
-
 
 static DateTime UnixTimeStampToDateTime(double unixTimeStamp)
 {
