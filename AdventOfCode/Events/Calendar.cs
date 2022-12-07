@@ -1,4 +1,7 @@
-namespace AdventOfCode.Puzzles;
+using AdventOfCode.Events.Leaderboards;
+using AdventOfCode.Events.Puzzles;
+
+namespace AdventOfCode.Events;
 
 public static class Calendar
 {
@@ -9,5 +12,12 @@ public static class Calendar
         var input = await Client.GetInputAsync(year, day);
 
         return new Puzzle(input);
+    }
+
+    public static async Task<Leaderboard?> GetMercantileLeaderboard(int year)
+    {
+        var leaderboard = await Client.GetLeaderboardAsync(year);
+
+        return leaderboard;
     }
 }

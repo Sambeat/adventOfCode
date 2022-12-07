@@ -1,6 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using AdventOfCode.Puzzles;
+using AdventOfCode.Events;
 using MoreLinq.Extensions;
 
 Console.WriteLine("Hello, World!");

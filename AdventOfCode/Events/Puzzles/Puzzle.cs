@@ -1,4 +1,4 @@
-namespace AdventOfCode.Puzzles;
+namespace AdventOfCode.Events.Puzzles;
 
 public class Puzzle
 {

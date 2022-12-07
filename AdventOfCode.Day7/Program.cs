@@ -1,7 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using AdventOfCode.Day7;
-using AdventOfCode.Puzzles;
+using AdventOfCode.Events;
 
 Console.WriteLine("Hello, World!");
 
