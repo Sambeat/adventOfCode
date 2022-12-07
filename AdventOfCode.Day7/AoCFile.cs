@@ -63,7 +63,7 @@ public class AoCFile
 
     private void Traverse100k()
     {
-        if (Size == 0 && DirectorySize() < 100000)
+        if (Size == 0 && DirectorySize() <= 100000)
         {
             SizeUnder100K += DirectorySize();
         }
