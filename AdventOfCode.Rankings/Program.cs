@@ -8,7 +8,7 @@ var leaderboard = await Calendar.GetMercantileLeaderboard(2022);
 Console.WriteLine("--------------------------------------------------------------------------------");
 
 Console.WriteLine($"{$"Member",-30}{"Stars",-25}{"Score",-25}");
-var sortedMembersByLocalScore = leaderboard.Members.OrderByDescending(m => m.Value.LocalScore ).ToList();
+var sortedMembersByLocalScore = leaderboard.Members.OrderByDescending(m => m.Value.Stars ).ThenByDescending(m => m.Value.LocalScore).ToList();
 sortedMembersByLocalScore.ForEach(m =>
 {
     Console.WriteLine($"{$"{m.Value.Name}:",-30}{$"{m.Value.Stars}",-25}{$"{m.Value.LocalScore}",-25}");
