@@ -16,6 +16,12 @@ public class AdventOfCodeClient
         {
             BaseAddress = new Uri(adventOfCodeConfig.BaseUrl ?? "https://adventofcode.com")
         };
+        
+        if (adventOfCodeConfig.SessionConfig?.Cookie == null)
+        {
+            throw new ArgumentNullException("SessionConfig.Cookie", "SessionConfig.Cookie not found in appsettings.json. Please create an appsettings.json file in the AdventOfCode project and add the cookie value found in the GET adventofcode.com Request Header named 'Cookie' ");
+        }
+        
         HttpClient.DefaultRequestHeaders.Add("Cookie", adventOfCodeConfig.SessionConfig?.Cookie);
     }
 
