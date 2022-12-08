@@ -19,16 +19,16 @@ public class Puzzle
     
     private T[][] InputMatrixFunc<T>(Func<char, T> parserFunc)
     {
-        var matrix = new T[InputLines.Length][];
-        for (var i = 0; i < InputLines.Length; i++)
+        var matrix = new T[InputLinesTrimmed.Length][];
+        for (var i = 0; i < InputLinesTrimmed.Length; i++)
         {
             if (matrix[i] == null)
             {
-                matrix[i] = new T[InputLines[i].Length];
+                matrix[i] = new T[InputLinesTrimmed[i].Length];
             }
-            for (var j = 0; j < InputLines[i].Length; j++)
+            for (var j = 0; j < InputLinesTrimmed[i].Length; j++)
             {
-                matrix[i][j] = parserFunc(InputLines[i][j]);
+                matrix[i][j] = parserFunc(InputLinesTrimmed[i][j]);
             }
         }
 
