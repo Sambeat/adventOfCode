@@ -31,7 +31,7 @@ for (var i = DateTimeOffset.Now.Day; i > 0; i--)
         {
             stars.Add(currentMember.Name,
                 (UnixTimeStampToDateTime(day.Part1.GetStarTimestamp),
-                    UnixTimeStampToDateTime(day.Part2.GetStarTimestamp)));
+                    UnixTimeStampToDateTime(day.Part2?.GetStarTimestamp ?? DateTime.Today.ToUniversalTime().AddDays(1).Subtract(new DateTime(1970, 1, 1)).TotalSeconds)));
         }
     });
 

@@ -9,5 +9,5 @@ public class Day
     public Star Part1 { get; set; }
 
     [JsonProperty("2")]
-    public Star Part2 { get; set; }
+    public Star? Part2 { get; set; }
 }
