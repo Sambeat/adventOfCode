@@ -8,7 +8,7 @@ var today = await Calendar.OpenPuzzleAsync(2022, 10);
 // today.PrintLines();
 
 var lines = today.InputLinesTrimmed;
-S// var lines = File.ReadLines("test.txt").Where(s => string.Empty != s).ToArray();
+// var lines = File.ReadLines("test.txt").Where(s => string.Empty != s).ToArray();
 
 
 var cycle = 1 ;
