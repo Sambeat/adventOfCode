@@ -13,6 +13,9 @@ var lines = today.InputLinesTrimmed;
 var tiles = new Tile[lines.Length][];
 Tile? startTile = null;
 Tile? endTile = null;
+
+var startTiles = new List<Tile>();
+
 for (var i = 0; i < lines.Length; i++)
 {
     var line = lines[i];
@@ -34,6 +37,10 @@ for (var i = 0; i < lines.Length; i++)
         else
         {
             tiles[i][j] = new Tile { I = i, J = j, Height = (int)line[j] };
+            if (line[j] == 'a')
+            {
+                startTiles.Add(tiles[i][j]);
+            }
         }
     }
 }
@@ -43,54 +50,66 @@ var paths = new List<List<Tile>>();
 var steps = forward(startTile);
 Console.WriteLine(steps);
 
+var stepCounts = startTiles.Select(forward);
+
+Console.WriteLine(stepCounts.Min());
+
 int forward(Tile tile)
 {
     var visited = new HashSet<Tile>();
+    var queueDistinctTracker = new HashSet<Tile>();
     var toVisit = new Queue<(int s, Tile tile)>();
     toVisit.Enqueue((0, tile));
+    queueDistinctTracker.Add(tile);
     
     while (toVisit.Any())
     {
         var nextToVisit = toVisit.Dequeue();
+        queueDistinctTracker.Remove(nextToVisit.tile);
+
         if (Equals(nextToVisit.tile, endTile))
         {
             return nextToVisit.s;
         }
+        
         visited.Add(nextToVisit.tile);
-        Neighbors(nextToVisit.tile).Where(n => !visited.Contains(n)).ForEach(n => toVisit.Enqueue((nextToVisit.s + 1 , n)));
+        
+        var neighbors = Neighbors(nextToVisit.tile);
+
+        foreach (var neighbor in neighbors)
+        {
+            if (!visited.Contains(neighbor) && !queueDistinctTracker.Contains(neighbor))
+            {
+                toVisit.Enqueue((nextToVisit.s + 1, neighbor));
+                queueDistinctTracker.Add(neighbor);
+            }
+        }
     }
 
-    return 0;
+    return int.MaxValue;
 }
-
-// var path = AStar(startTile, endTile);
-// Console.WriteLine(path.Count());
 
 IEnumerable<Tile> Neighbors(Tile tile)
 {
     var neighbors = new List<Tile>();
     var currentTile = tiles[tile.I][tile.J];
 
-    if (tile.I > 0 && (tiles[tile.I - 1][tile.J].Height - currentTile.Height == 1 ||
-                       tiles[tile.I - 1][tile.J].Height - currentTile.Height == 0))
+    if (tile.I > 0 && (tiles[tile.I - 1][tile.J].Height - currentTile.Height <= 1))
     {
         neighbors.Add(tiles[tile.I - 1][tile.J]);
     }
 
-    if (tile.I < tiles.Length - 1 && (tiles[tile.I + 1][tile.J].Height - currentTile.Height == 1 ||
-                                      tiles[tile.I + 1][tile.J].Height - currentTile.Height == 0))
+    if (tile.I < tiles.Length - 1 && (tiles[tile.I + 1][tile.J].Height - currentTile.Height <= 1))
     {
         neighbors.Add(tiles[tile.I + 1][tile.J]);
     }
 
-    if (tile.J > 0 && (tiles[tile.I][tile.J - 1].Height - currentTile.Height == 1 ||
-                       tiles[tile.I][tile.J - 1].Height - currentTile.Height == 0))
+    if (tile.J > 0 && (tiles[tile.I][tile.J - 1].Height - currentTile.Height <= 1))
     {
         neighbors.Add(tiles[tile.I][tile.J - 1]);
     }
 
-    if (tile.J < tiles[tile.I].Length - 1 && (tiles[tile.I][tile.J + 1].Height - currentTile.Height == 1 ||
-                                              tiles[tile.I][tile.J + 1].Height - currentTile.Height == 0))
+    if (tile.J < tiles[tile.I].Length - 1 && (tiles[tile.I][tile.J + 1].Height - currentTile.Height <= 1))
     {
         neighbors.Add(tiles[tile.I][tile.J + 1]);
     }
@@ -102,68 +121,4 @@ IEnumerable<Tile> Neighbors(Tile tile)
     }
 
     return neighbors;
-}
-
-IEnumerable<Tile> ConstructPath(Tile tile)
-{
-    var path = new HashSet<Tile>();
-    while (!Equals(tile.Parent, startTile))
-    {
-        Console.WriteLine($"{(char)tile.Height}: {tile.I}, {tile.J}");
-        //Do I want the initial node here?
-        tile = tile.Parent;
-        path.Add(tile);
-    }
-
-    return path;
-}
-
-int Heuristic(Tile tile)
-{
-    return Math.Abs(tile.I - endTile.I) + Math.Abs(tile.J - endTile.J);
-}
-
-
-IEnumerable<Tile> AStar(Tile start, Tile goal)
-{
-    var accessible = new HashSet<Tile>() { start };
-    var visited = new HashSet<Tile>();
-    start.Cost = 0;
-    start.FullCost = start.Cost + Heuristic(start);
-    while (accessible.Any())
-    {
-        var current = Enumerable.MinBy(accessible, t => t.FullCost);
-        if (Equals(current, goal))
-        {
-            return ConstructPath(current);
-        }
-
-        accessible.Remove(current);
-        visited.Add(current);
-
-        foreach (var neighbor in Neighbors(current))
-        {
-            if (visited.Contains(neighbor))
-            {
-                continue;
-            }
-
-            neighbor.FullCost = neighbor.Cost + Heuristic(neighbor);
-            if (!accessible.Contains(neighbor))
-            {
-                accessible.Add(neighbor);
-            }
-            else
-            {
-                var accessibleNeighbor = accessible.First(t => t.Equals(neighbor));
-                if (neighbor.Cost < accessibleNeighbor.Cost)
-                {
-                    accessibleNeighbor.Cost = neighbor.Cost;
-                    accessibleNeighbor.Parent = neighbor.Parent;
-                }
-            }
-        }
-    }
-
-    return new List<Tile>();
 }
