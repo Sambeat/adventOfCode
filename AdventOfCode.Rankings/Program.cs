@@ -36,10 +36,10 @@ for (var i = DateTimeOffset.Now.Day; i > 0; i--)
     });
 
     var sortedMembers = stars.OrderBy(s => s.Value.Item2 ).ToList();
-    Console.WriteLine($"{$"Day {i}",-30}{"Part 1",-25}{"Part 2",-25}");
+    Console.WriteLine($"{$"Day {i}",-30}{"Part 1",-25}{"Part 2",-25}{"Delta",-25}");
     sortedMembers.ForEach(m =>
     {
-        Console.WriteLine($"{$"{m.Key}:",-30}{$"{m.Value.Item1}",-25}{$"{m.Value.Item2}",-25}");
+        Console.WriteLine($"{$"{m.Key}:",-30}{$"{m.Value.Item1}",-25}{$"{m.Value.Item2}",-25}{$"{m.Value.Item2.Subtract(m.Value.Item1).TotalSeconds} seconds",-25}");
     });
     
     Console.WriteLine("--------------------------------------------------------------------------------");
