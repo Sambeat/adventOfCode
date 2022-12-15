@@ -17,7 +17,7 @@ sortedMembersByLocalScore.ForEach(m =>
 Console.WriteLine("--------------------------------------------------------------------------------");
 
 
-for (var i = DateTimeOffset.Now.Day; i > 0; i--)
+for (var i = 1; i <= DateTimeOffset.Now.Day; i++)
 {
     Dictionary<string, (DateTime, DateTime)> stars = new Dictionary<string, (DateTime, DateTime)>();
 
