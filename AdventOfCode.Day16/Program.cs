@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using System.Collections.Immutable;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using AdventOfCdoe.Day16;
 using AdventOfCode.Events;
 
@@ -8,8 +9,8 @@ var today = await Calendar.OpenPuzzleAsync(2022, 16);
 
 today.PrintLines();
 
-// var lines = today.InputLinesTrimmed;
-var lines = File.ReadLines("test.txt").Where(s => string.Empty != s).ToArray();
+var lines = today.InputLinesTrimmed;
+// var lines = File.ReadLines("test.txt").Where(s => string.Empty != s).ToArray();
 
 
 var valves = new List<Valve>();
@@ -32,12 +33,11 @@ foreach (var line in lines)
 }
 
 var unopenedValvesWithFlow = valves.Where(v => v.Flow > 0).ToList();
-var openedValves = new List<Valve>();
 
 var pairWiseDistances = new Dictionary<string, Dictionary<string, int>>();
 
-var currentLocation = valves.Single(v => v.Name == "AA");
-ComputeShortestPathLinear(currentLocation);
+var startingLocation = valves.Single(v => v.Name == "AA");
+ComputeShortestPathLinear(startingLocation);
 foreach (var valve in unopenedValvesWithFlow)
 {
     ComputeShortestPathLinear(valve);
@@ -45,132 +45,95 @@ foreach (var valve in unopenedValvesWithFlow)
 
 Console.WriteLine("computed shortest paths");
 
-var currentMinute = 1;
+// var currentMinute = 1;
+var maxMinutes = 30;
+var maxPressureReleasing = 0;
+var maxCurrentMinute = 0;
 
-var maxPressureReleased = Move(currentLocation, 0, currentMinute, 0);
+//Part 1, set max to 30 minutes
+var maxPressureReleased = Move(startingLocation, 0, 1, 0, unopenedValvesWithFlow.Select(v => v.Name).ToList());
 
 Console.WriteLine(maxPressureReleased);
+Console.WriteLine(maxPressureReleasing);
+Console.WriteLine(maxCurrentMinute);
+
+//Part 2. set max to 26 minutes
+var subSets = ComputeAllSubsets(unopenedValvesWithFlow).ToList();
+Console.WriteLine("pop");
+
+var maxPressuresReleased = new ConcurrentBag<int>();
+
+var watch = Stopwatch.StartNew();
+
+Parallel.ForEach(subSets, (set) =>
+{
+    var humanPressure = Move(startingLocation, 0, 1, 0, set.Item1.Select(v => v.Name).ToList());
+    var elephantPressure = Move(startingLocation, 0, 1, 0, set.Item2.Select(v => v.Name).ToList());
+
+    maxPressuresReleased.Add(humanPressure + elephantPressure);
+
+    if (maxPressuresReleased.Count % 1000 == 0)
+    {
+        Console.WriteLine($"Progress: {maxPressuresReleased.Count}/{(double)subSets.Count}");
+    }
+});
+
+// foreach (var set in subSets)
+// {
+//     var humanPressure = Move(startingLocation, 0, 1, 0, set.Item1.Select(v => v.Name).ToList());
+//
+//     var elephantPressure = Move(startingLocation, 0, 1, 0, set.Item2.Select(v => v.Name).ToList());
+//
+//     maxPressuresReleased.Add(humanPressure + elephantPressure);
+//
+//     if (maxPressuresReleased.Count % 1000 == 0)
+//     {
+//         Console.WriteLine($"Progress: {maxPressuresReleased.Count}/{(double)subSets.Count}");
+//     }
+// }
+
+Console.WriteLine($"time: {watch.Elapsed}");
+
+Console.WriteLine(maxPressureReleasing);
+Console.WriteLine(maxCurrentMinute);
+
+Console.WriteLine(maxPressuresReleased.Max());
 
 int Move(Valve currentLocation, int pressureReleasedTotal, int currentMinute, int pressureReleasing, List<string> unvisitedValves)
 {
-    
-    if (currentMinute >= 30)
+    maxPressureReleasing = Math.Max(maxPressureReleasing, pressureReleasing);
+    if (currentMinute >= maxMinutes)
     {
+        if (currentMinute > maxMinutes)
+        {
+            pressureReleasedTotal -= (currentMinute - maxMinutes - 1) * pressureReleasing;
+        }
+
+        maxCurrentMinute = Math.Max(currentMinute, maxCurrentMinute);
         return pressureReleasedTotal;
     }
 
-    var availablePaths = pairWiseDistances[currentLocation.Name];
+    unvisitedValves.Remove(currentLocation.Name);
+    var availablePaths = pairWiseDistances[currentLocation.Name].Where(kvp => unvisitedValves.Contains(kvp.Key));
 
     var pressures = availablePaths
         .Select(p => Move(valves.Single(v => v.Name == p.Key),
-            pressureReleasedTotal + pressureReleasing * (currentMinute + p.Value + 1),
+            pressureReleasedTotal + pressureReleasing * (p.Value + 1),
             currentMinute + p.Value + 1, 
-            pressureReleasing + valves.Single(v => v.Name == p.Key).Flow), availableDistances.);
+            pressureReleasing + valves.Single(v => v.Name == p.Key).Flow, new List<string>(unvisitedValves)));
 
-    return pressures.Max();
+
+    if (pressures.Any())
+    {
+        return pressures.Max();
+    }
+    else
+    {
+        maxCurrentMinute = Math.Max(currentMinute, maxCurrentMinute);
+        return pressureReleasedTotal + (maxMinutes - currentMinute + 1) * pressureReleasing;
+    }
 }
 
-
-// var currentMinute = 1;
-// var pressureReleased = 0;
-// Console.WriteLine($"Minute: {currentMinute}, Current Release: {openedValves.Sum(v => v.Flow)}, Total Pressure Released: {pressureReleased}");
-//
-// var currentLocation = valves.Single(v => v.Name == "AA");
-// while (currentMinute < 30)
-// {
-//     var hasToReevaluate = false;
-//     var pathV = DetermineTarget(currentLocation, currentMinute);
-//
-//     if (pathV == null)
-//     {
-//         pressureReleased += openedValves.Sum(v => v.Flow);
-//         currentMinute++;
-//     }
-//     else
-//     {
-//
-//         //Moving
-//         for (var p = 0; p < pathV?.path.Count; p++)
-//         {
-//             Console.WriteLine($"Minute: {currentMinute}, Current Release: {openedValves.Sum(v => v.Flow)}, Total Pressure Released: {pressureReleased}, Opened valves: {string.Join(',',openedValves.Select(v => v.Name))}");
-//
-//             var pathValve = pathV?.path[p];
-//
-//             if (p + 1 == pathV?.path.Count)
-//             {
-//                 Console.WriteLine($"MOVING TO {pathV?.v.Name}");
-//             }
-//             else
-//             {
-//                 Console.WriteLine($"MOVING TO {pathV?.path[p+1]}");
-//
-//             }
-//
-//             pressureReleased += openedValves.Sum(v => v.Flow);
-//             currentMinute++;
-//             
-//             var unopenedValveOnPath = unopenedValvesWithFlow.SingleOrDefault(v => v.Name == pathValve);
-//             
-//             Console.WriteLine($"Minute: {currentMinute}, Current Release: {openedValves.Sum(v => v.Flow)}, Total Pressure Released: {pressureReleased}, Opened valves: {string.Join(',',openedValves.Select(v => v.Name))}");
-//             
-//             if (unopenedValveOnPath != null && unopenedValveOnPath.Flow * (pathV?.path.Count - p) > pathV?.v.Flow)
-//             {
-//                 openedValves.Add(unopenedValveOnPath);
-//                 unopenedValvesWithFlow.Remove(unopenedValveOnPath);
-//                 currentLocation = unopenedValveOnPath;
-//                 hasToReevaluate = true;
-//                 Console.WriteLine($"Special! Minute: {currentMinute}, Current Release: {openedValves.Sum(v => v.Flow)}, Total Pressure Released: {pressureReleased}, Opened valves: {string.Join(',',openedValves.Select(v => v.Name))}");
-//
-//                 break;
-//                 
-//             }
-//         }
-//
-//         if (hasToReevaluate)
-//         {
-//             continue;
-//         }
-//
-//
-//         //Opening Valve
-//         pressureReleased += openedValves.Sum(v => v.Flow);
-//         currentMinute++;
-//         openedValves.Add(pathV?.v!);
-//         unopenedValvesWithFlow.Remove(pathV?.v!);
-//         currentLocation = pathV?.v;            
-//      
-//         Console.WriteLine($"Minute: {currentMinute}, Current Release: {openedValves.Sum(v => v.Flow)}, Total Pressure Released: {pressureReleased}, Opened valves: {string.Join(',',openedValves.Select(v => v.Name))}");
-//     }
-//     
-//     Console.WriteLine($"Minute: {currentMinute}, Current Release: {openedValves.Sum(v => v.Flow)}, Total Pressure Released: {pressureReleased}, Opened valves: {string.Join(',',openedValves.Select(v => v.Name))}");
-//
-// }
-//
-// // var pressureReleased = Release(valves.Single(v => v.Name == "AA"), 0, 0, ImmutableHashSet<Valve>.Empty);
-// Console.WriteLine(pressureReleased);
-
-
-//
-// (Valve v, List<string> path)? DetermineTarget(Valve currentLocation, int currentMinute)
-// {
-//     var paths = unopenedValvesWithFlow.Where(v => v.Name != currentLocation.Name).Select(v => (v, ComputeShortestPath(currentLocation, v))).ToList();
-//
-//     var pressurePotentials = paths.Select(vp => (vp.v, (30 - currentMinute - (vp.Item2.Count)) * vp.v.Flow));
-//
-//     if (!pressurePotentials.Any())
-//     {
-//         return null;
-//     }
-//     
-//     
-//     
-//     var targetValve = Enumerable.MaxBy(pressurePotentials, (vpotential) => vpotential.Item2).v;
-//
-//     return paths.Single(pathv => pathv.v.Name == targetValve.Name);
-//
-//     // return paths.MinBy(pathv => pathv.Item2.Count);
-// }
-//
 void ComputeShortestPathLinear(Valve currentLocation)
 {
     pairWiseDistances.Add(currentLocation.Name, new Dictionary<string, int>());
@@ -207,89 +170,39 @@ void ComputeShortestPathLinear(Valve currentLocation)
         }
     }
 }
-//
-// List<string> ComputeShortestPath(Valve currentLocation, Valve target)
-// {
-//     return ComputeShortestPathRecursive(currentLocation, target, ImmutableHashSet<string>.Empty);
-// }
-//
-// List<string> ComputeShortestPathRecursive(Valve currentLocation, Valve target, ImmutableHashSet<string> moves)
-// {
-//     if (currentLocation == target)
-//     {
-//         return moves.ToList();
-//     }
-//     
-//     moves = moves.Add(currentLocation.Name);
-//
-//     var allPossibleMoves = new List<List<string>>();
-//
-//     foreach (var tunnel in currentLocation.Tunnels)
-//     {
-//         if (!moves.Contains(tunnel))
-//         {
-//             allPossibleMoves.Add(ComputeShortestPathRecursive(valves.Single(v => v.Name == tunnel), target, moves));
-//         }
-//     }
-//
-//     return Enumerable.MinBy(allPossibleMoves, m => m.Count) ?? moves.ToList();
-// }
-//
 
+IEnumerable<(List<Valve>, List<Valve>)>
+    ComputeAllSubsets(List<Valve> initialSet)
+{
+    var subsetQty = (int)Math.Pow(2, initialSet.Count);
+    var subsets = new List<(List<Valve>, List<Valve>)>(subsetQty);
+    var uniqueKeys = new HashSet<string>();
 
-// int Release(Valve currentLocation, int pressureReleased, int minutesElapsed, ImmutableHashSet<Valve> openedValves)
-// {
-//     if (minutesElapsed == 30)
-//     {
-//         return pressureReleased;
-//     }
-//
-//     var pressures = new List<int>();
-//
-//     if (currentLocation.Flow == 0 || openedValves.Any(v => v.Name == currentLocation.Name))
-//     {
-//         Parallel.ForEach(currentLocation.Tunnels, (t) =>
-//         {
-//             var valve = valves.Single(v => v.Name == t);
-//
-//             pressures.Add(
-//                 Release(valve, pressureReleased + openedValves.Sum(v => v.Flow), minutesElapsed + 1, openedValves));
-//         });
-//     }  
-//
-//     // foreach (var currentLocationTunnel in currentLocation.Tunnels)
-//     // {
-//     //     var valve = valves.Single(v => v.Name == currentLocationTunnel);
-//     //
-//     //     pressures.Add(Release(valve, pressureReleased + openedValves.Sum(v => v.Flow), minutesElapsed + 1, openedValves));
-//     // }
-//
-//      else 
-//     {
-//         pressures.Add(Release(currentLocation, pressureReleased + openedValves.Sum(v => v.Flow), minutesElapsed + 1,
-//             openedValves.Add(currentLocation)));
-//     }
-//
-//     return pressures.Max();
-// }
+    for (var subSet = 0; subSet < subsetQty; subSet++)
+    {
+        var firstSubSet = new List<Valve>();
+        var secondSubSet = new List<Valve>();
+        for(var bitMask = 0; bitMask < initialSet.Count; bitMask++)
+        {
+            if ((subSet & (1 << bitMask)) != 0)
+            {
+                firstSubSet.Add(initialSet.ElementAt(bitMask));
+            }
+            else
+            {
+                secondSubSet.Add(initialSet.ElementAt(bitMask));
+            }
+        }
+        
+        var firstSubSetKeys = string.Join("", firstSubSet.Select(v => v.Name).OrderBy(s => s));
+        
+        var subSetAcceptableRange = firstSubSet.Count >= (initialSet.Count / 2 - 0) && firstSubSet.Count <= (initialSet.Count / 2 + 1);
+        if (subSetAcceptableRange && !uniqueKeys.Contains(firstSubSetKeys))
+        {
+            uniqueKeys.Add(firstSubSetKeys);
+            subsets.Add((firstSubSet, secondSubSet));
+        }
+    }
 
-// int Move(Valve currentLocation, int pressureReleased, int minutesElapsed, ImmutableHashSet<Valve> openedValves)
-// {
-//     if (minutesElapsed == 30)
-//     {
-//         return pressureReleased;
-//     }
-//     
-//     var pressures = new List<int>();
-//     foreach (var currentLocationTunnel in currentLocation.Tunnels)
-//     {
-//         var valve = valves.Single(v => v.Name == currentLocationTunnel);
-//
-//         pressures.Add(Move(valve, pressureReleased + openedValves.Sum(v => v.Flow), minutesElapsed + 1, openedValves));
-//     }
-//
-//     pressures.Add(Release(currentLocation, pressureReleased + openedValves.Sum(v => v.Flow), minutesElapsed + 1, openedValves.Add(currentLocation)));
-//
-//     return pressures.Max();
-// }
-
+    return subsets;
+}
