@@ -1,3 +1,4 @@
+using System.Text;
 using AdventOfCode.Configs;
 using AdventOfCode.Events.Leaderboards;
 using Newtonsoft.Json;
@@ -29,6 +30,14 @@ public class AdventOfCodeClient
     {
         var response = await HttpClient.GetAsync($"/{year}/day/{day}/input");
         response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsStringAsync();
+    }
+
+    internal async Task<string> PostAnswerAsync(int year, int day, string answer, int level)
+    {
+        var response = await HttpClient.PostAsync($"/{year}/day/{day}/answer", new StringContent($"level={level}&answer={answer}", Encoding.UTF8, "application/x-www-form-urlencoded"));
+        response.EnsureSuccessStatusCode();
+        
         return await response.Content.ReadAsStringAsync();
     }
     

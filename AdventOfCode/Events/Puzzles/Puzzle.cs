@@ -50,4 +50,5 @@ public class Puzzle
             Console.WriteLine(line);
         }
     }
+    
 }

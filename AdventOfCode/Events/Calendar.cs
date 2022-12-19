@@ -13,6 +13,13 @@ public static class Calendar
 
         return new Puzzle(input);
     }
+    
+    public static async Task<string> PostAnswerAsync(int year, int day, string answer, int part)
+    {
+        var response = await Client.PostAnswerAsync(year, day, answer, part);
+
+        return response;
+    }
 
     public static async Task<Leaderboard?> GetMercantileLeaderboard(int year)
     {

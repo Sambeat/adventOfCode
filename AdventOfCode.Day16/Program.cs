@@ -9,8 +9,8 @@ var today = await Calendar.OpenPuzzleAsync(2022, 16);
 
 today.PrintLines();
 
-var lines = today.InputLinesTrimmed;
-// var lines = File.ReadLines("test.txt").Where(s => string.Empty != s).ToArray();
+// var lines = today.InputLinesTrimmed;
+var lines = File.ReadLines("test.txt").Where(s => string.Empty != s).ToArray();
 
 
 var valves = new List<Valve>();
@@ -46,31 +46,31 @@ foreach (var valve in unopenedValvesWithFlow)
 Console.WriteLine("computed shortest paths");
 
 // var currentMinute = 1;
-var maxMinutes = 30;
+var maxMinutes = 26;
 var maxPressureReleasing = 0;
 var maxCurrentMinute = 0;
 
 //Part 1, set max to 30 minutes
-var maxPressureReleased = Move(startingLocation, 0, 1, 0, unopenedValvesWithFlow.Select(v => v.Name).ToList());
-
-Console.WriteLine(maxPressureReleased);
-Console.WriteLine(maxPressureReleasing);
-Console.WriteLine(maxCurrentMinute);
+// var maxPressureReleased = Move(startingLocation, 0, 1, 0, unopenedValvesWithFlow.Select(v => v.Name).ToList());
+//
+// Console.WriteLine(maxPressureReleased);
+// Console.WriteLine(maxPressureReleasing);
+// Console.WriteLine(maxCurrentMinute);
 
 //Part 2. set max to 26 minutes
 var subSets = ComputeAllSubsets(unopenedValvesWithFlow).ToList();
 Console.WriteLine("pop");
 
-var maxPressuresReleased = new ConcurrentBag<int>();
+var maxPressuresReleased = new ConcurrentBag<(int, List<string>, List<string>)>();
 
 var watch = Stopwatch.StartNew();
 
 Parallel.ForEach(subSets, (set) =>
 {
-    var humanPressure = Move(startingLocation, 0, 1, 0, set.Item1.Select(v => v.Name).ToList());
-    var elephantPressure = Move(startingLocation, 0, 1, 0, set.Item2.Select(v => v.Name).ToList());
-
-    maxPressuresReleased.Add(humanPressure + elephantPressure);
+    var humanPressure = Move(startingLocation, 0, 1, 0, set.Item1.Select(v => v.Name).ToList(), new List<string>());
+    var elephantPressure = Move(startingLocation, 0, 1, 0, set.Item2.Select(v => v.Name).ToList(), new List<string>());
+    
+    maxPressuresReleased.Add((humanPressure.Item1 + elephantPressure.Item1, humanPressure.Item2, elephantPressure.Item2));
 
     if (maxPressuresReleased.Count % 1000 == 0)
     {
@@ -97,20 +97,23 @@ Console.WriteLine($"time: {watch.Elapsed}");
 Console.WriteLine(maxPressureReleasing);
 Console.WriteLine(maxCurrentMinute);
 
-Console.WriteLine(maxPressuresReleased.Max());
+var bestPressureAndPath = maxPressuresReleased.MaxBy(mpr => mpr.Item1);
+Console.WriteLine($"Human Path: {string.Join(',', bestPressureAndPath.Item2)}");
+Console.WriteLine($"Elephant Path: {string.Join(',', bestPressureAndPath.Item3)}");
 
-int Move(Valve currentLocation, int pressureReleasedTotal, int currentMinute, int pressureReleasing, List<string> unvisitedValves)
+Console.WriteLine(bestPressureAndPath.Item1);
+
+(int, List<string>) Move(Valve currentLocation, int pressureReleasedTotal, int currentMinute, int pressureReleasing, List<string> unvisitedValves, List<string> path)
 {
+    path.Add(currentLocation.Name);
+
     maxPressureReleasing = Math.Max(maxPressureReleasing, pressureReleasing);
     if (currentMinute >= maxMinutes)
     {
-        if (currentMinute > maxMinutes)
-        {
-            pressureReleasedTotal -= (currentMinute - maxMinutes - 1) * pressureReleasing;
-        }
+        pressureReleasedTotal -= (currentMinute - maxMinutes - 1) * pressureReleasing;
 
         maxCurrentMinute = Math.Max(currentMinute, maxCurrentMinute);
-        return pressureReleasedTotal;
+        return (pressureReleasedTotal, path);
     }
 
     unvisitedValves.Remove(currentLocation.Name);
@@ -120,17 +123,17 @@ int Move(Valve currentLocation, int pressureReleasedTotal, int currentMinute, in
         .Select(p => Move(valves.Single(v => v.Name == p.Key),
             pressureReleasedTotal + pressureReleasing * (p.Value + 1),
             currentMinute + p.Value + 1, 
-            pressureReleasing + valves.Single(v => v.Name == p.Key).Flow, new List<string>(unvisitedValves)));
+            pressureReleasing + valves.Single(v => v.Name == p.Key).Flow, new List<string>(unvisitedValves), new List<string>(path)));
 
 
     if (pressures.Any())
     {
-        return pressures.Max();
+        return pressures.MaxBy(p => p.Item1);
     }
     else
     {
         maxCurrentMinute = Math.Max(currentMinute, maxCurrentMinute);
-        return pressureReleasedTotal + (maxMinutes - currentMinute + 1) * pressureReleasing;
+        return (pressureReleasedTotal + (maxMinutes - currentMinute + 1) * pressureReleasing, path);
     }
 }
 
