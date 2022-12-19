@@ -9,8 +9,8 @@ var today = await Calendar.OpenPuzzleAsync(2022, 16);
 
 today.PrintLines();
 
-// var lines = today.InputLinesTrimmed;
-var lines = File.ReadLines("test.txt").Where(s => string.Empty != s).ToArray();
+var lines = today.InputLinesTrimmed;
+// var lines = File.ReadLines("test.txt").Where(s => string.Empty != s).ToArray();
 
 
 var valves = new List<Valve>();
@@ -61,30 +61,33 @@ var maxCurrentMinute = 0;
 var subSets = ComputeAllSubsets(unopenedValvesWithFlow).ToList();
 Console.WriteLine("pop");
 
-var maxPressuresReleased = new ConcurrentBag<(int, List<string>, List<string>)>();
+var maxPressuresReleased = new ConcurrentBag<(int, List<string>, List<string>, (List<Valve>, List<Valve>))>();
 
 var watch = Stopwatch.StartNew();
 
 Parallel.ForEach(subSets, (set) =>
 {
-    var humanPressure = Move(startingLocation, 0, 1, 0, set.Item1.Select(v => v.Name).ToList(), new List<string>());
-    var elephantPressure = Move(startingLocation, 0, 1, 0, set.Item2.Select(v => v.Name).ToList(), new List<string>());
-    
-    maxPressuresReleased.Add((humanPressure.Item1 + elephantPressure.Item1, humanPressure.Item2, elephantPressure.Item2));
-
-    if (maxPressuresReleased.Count % 1000 == 0)
-    {
-        Console.WriteLine($"Progress: {maxPressuresReleased.Count}/{(double)subSets.Count}");
-    }
+     var humanPressure = Move(startingLocation, 0, 1, 0, set.Item1.Select(v => v.Name).ToList(), new List<string>());
+     var elephantPressure = Move(startingLocation, 0, 1, 0, set.Item2.Select(v => v.Name).ToList(), new List<string>());
+     
+     maxPressuresReleased.Add((humanPressure.Item1 + elephantPressure.Item1, humanPressure.Item2, elephantPressure.Item2, set));
+     
+     if (maxPressuresReleased.Count % 1000 == 0)
+     {
+         Console.WriteLine($"Progress: {maxPressuresReleased.Count}/{(double)subSets.Count}");
+     }
 });
 
 // foreach (var set in subSets)
+// foreach (var set in new List<(List<Valve>, List<Valve>)>
+//          {
+//              (valves.Where(v => "JH,OI,GG,ZL,XF,TR,SZ,FF".Contains(v.Name)).ToList(), valves.Where(v => "QZ,TU,IZ,YL,UZ,PA,CU".Contains(v.Name)).ToList()),
+//          })
 // {
-//     var humanPressure = Move(startingLocation, 0, 1, 0, set.Item1.Select(v => v.Name).ToList());
-//
-//     var elephantPressure = Move(startingLocation, 0, 1, 0, set.Item2.Select(v => v.Name).ToList());
-//
-//     maxPressuresReleased.Add(humanPressure + elephantPressure);
+//     var humanPressure = Move(startingLocation, 0, 1, 0, set.Item1.Select(v => v.Name).ToList(), new List<string>());
+//     var elephantPressure = Move(startingLocation, 0, 1, 0, set.Item2.Select(v => v.Name).ToList(), new List<string>());
+//      
+//     maxPressuresReleased.Add((humanPressure.Item1 + elephantPressure.Item1, humanPressure.Item2, elephantPressure.Item2, set));
 //
 //     if (maxPressuresReleased.Count % 1000 == 0)
 //     {
@@ -98,6 +101,9 @@ Console.WriteLine(maxPressureReleasing);
 Console.WriteLine(maxCurrentMinute);
 
 var bestPressureAndPath = maxPressuresReleased.MaxBy(mpr => mpr.Item1);
+Console.WriteLine($"Human Subset: {string.Join(',', bestPressureAndPath.Item4.Item1.Select(v => v.Name))}");
+Console.WriteLine($"Elephant Subset: {string.Join(',', bestPressureAndPath.Item4.Item2.Select(v => v.Name))}");
+
 Console.WriteLine($"Human Path: {string.Join(',', bestPressureAndPath.Item2)}");
 Console.WriteLine($"Elephant Path: {string.Join(',', bestPressureAndPath.Item3)}");
 
@@ -123,7 +129,7 @@ Console.WriteLine(bestPressureAndPath.Item1);
         .Select(p => Move(valves.Single(v => v.Name == p.Key),
             pressureReleasedTotal + pressureReleasing * (p.Value + 1),
             currentMinute + p.Value + 1, 
-            pressureReleasing + valves.Single(v => v.Name == p.Key).Flow, new List<string>(unvisitedValves), new List<string>(path)));
+            pressureReleasing + valves.Single(v => v.Name == p.Key).Flow, new List<string>(unvisitedValves), new List<string>(path))).ToList();
 
 
     if (pressures.Any())
@@ -149,8 +155,6 @@ void ComputeShortestPathLinear(Valve currentLocation)
     
     while (toVisit.Any())
     {
-        
-        
         var nextToVisit = toVisit.Dequeue();
         queueDistinctTracker.Remove(nextToVisit.valve.Name);
 
