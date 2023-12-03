@@ -109,7 +109,7 @@ public class Game
         if (Ore >= blueprint.ClayRobotCost)
         {
             orders.Add("Clay");
-        } else 
+        }  
 
         if (Ore >= blueprint.OreRobotCost)
         {

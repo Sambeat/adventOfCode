@@ -80,9 +80,9 @@ int SimulateBlueprint(Blueprint blueprint, int minutes)
 
         if (tempGames.Any())
         {
-            var bestGames = tempGames.OrderByDescending(g => 1000 * g.Geode + 100 * g.Obsidian + 10 * g.Clay + g.Ore).Take(30000).ToList();
+            // var bestGames = tempGames.OrderByDescending(g => 1000 * g.Geode + 100 * g.Obsidian + 10 * g.Clay + g.Ore).Take(30000).ToList();
             
-            games = bestGames;
+            games = tempGames;
         }
     }
 
